@@ -15,7 +15,13 @@ public class ParkingManger {
         AvailabilityResponse response = RealTimeParkingAvailability.parkVehicle(vehicle, parkingLot);
 
         if (response.isAvailable()) {
-            parkingLot.getParkingSpots().get(response.getParkingSpot()).add(vehicle);
+            ParkingSpot parkingSpot = response.getParkingSpot();
+            List<Vehicle> vehicles =  parkingLot.getParkingSpotsToVehicles().get(parkingSpot);
+            vehicles.add(vehicle);
+            parkingLot
+                    .getParkingSpotsToAvailableParking()
+                    .put(parkingSpot, RealTimeParkingAvailability.updateAvailabilityParkingSpot(parkingSpot.getSize(), vehicles));
+
 
             return new ParkingResponse(true, response.getParkingSpot().getId());
         }
@@ -26,14 +32,28 @@ public class ParkingManger {
 
 
     public boolean removeVehicle(UUID id) {
-        return parkingLot
-                .getParkingSpots()
-                .entrySet()
-                .stream()
-                .anyMatch(parkingSpotListEntry ->
-                        parkingSpotListEntry
+
+        Optional<Map.Entry<ParkingSpot, List<Vehicle>>> entryParkingSpotToVehicles =
+                parkingLot
+                        .getParkingSpotsToVehicles()
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry
                                 .getValue()
-                                .removeIf(vehicle -> vehicle.getId().equals(id)));
+                                .stream()
+                                .anyMatch(vehicle -> vehicle.getId().equals(id)))
+                        .findFirst();
+        if (entryParkingSpotToVehicles.isPresent()) {
+            ParkingSpot parkingSpot = entryParkingSpotToVehicles.get().getKey();
+            List<Vehicle> vehicles = entryParkingSpotToVehicles.get().getValue();
+            vehicles.removeIf(vehicle -> vehicle.getId().equals(id));
+            parkingLot.getParkingSpotsToVehicles().put(parkingSpot, vehicles);
+            parkingLot
+                    .getParkingSpotsToAvailableParking()
+                    .put(parkingSpot, RealTimeParkingAvailability.updateAvailabilityParkingSpot(parkingSpot.getSize(), vehicles));
+            return true;
+        }
+        return false;
 
     }
 //        Optional<ParkingSpot> parkingSpotOpt = parkingLot.getParkingSpots().stream()

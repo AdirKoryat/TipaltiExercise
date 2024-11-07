@@ -31,11 +31,11 @@ public class ParkingMangerTest {
         Map<ParkingSpot, List<Vehicle>> parkingSpots = new HashMap<>();
         ParkingSpot parkingSpot = new ParkingSpot(Size.SMALL);
         parkingSpots.put(parkingSpot, new ArrayList<>());
-        when(parkingLot.getParkingSpots()).thenReturn(parkingSpots);
+        when(parkingLot.getParkingSpotsToVehicles()).thenReturn(parkingSpots);
         ParkingResponse parkingResponse = parkingManger.parkVehicle(motorcycle);
 
         assertTrue(parkingResponse.isSuccess());
-        assertEquals(1, parkingLot.getParkingSpots().get(parkingSpot).size());
+        assertEquals(1, parkingLot.getParkingSpotsToVehicles().get(parkingSpot).size());
     }
 
 
@@ -44,11 +44,26 @@ public class ParkingMangerTest {
         Vehicle motorcycle = new Motorcycle();
         List<Vehicle> vehicles = new ArrayList<>();
         vehicles.add(motorcycle);
+        ParkingSpot parkingSpot = new ParkingSpot(Size.SMALL);
         Map<ParkingSpot, List<Vehicle>> parkingSpots = new HashMap<>();
-        parkingSpots.put(new ParkingSpot(Size.SMALL), vehicles);
-        when(parkingLot.getParkingSpots()).thenReturn(parkingSpots);
+        parkingSpots.put(parkingSpot, vehicles);
+        when(parkingLot.getParkingSpotsToVehicles()).thenReturn(parkingSpots);
         ParkingResponse parkingResponse = parkingManger.parkVehicle(motorcycle);
 
         assertFalse(parkingResponse.isSuccess());
+    }
+
+
+    @Test
+    public void testRemoveSmallVehicle() {
+        Vehicle motorcycle = new Motorcycle();
+        List<Vehicle> vehicles = new ArrayList<>();
+        vehicles.add(motorcycle);
+        ParkingSpot parkingSpot = new ParkingSpot(Size.SMALL);
+        Map<ParkingSpot, List<Vehicle>> parkingSpots = new HashMap<>();
+        parkingSpots.put(parkingSpot, vehicles);
+        when(parkingLot.getParkingSpotsToVehicles()).thenReturn(parkingSpots);
+        boolean isRemoved = parkingManger.removeVehicle(motorcycle.getId());
+        assertTrue(isRemoved);
     }
 }
